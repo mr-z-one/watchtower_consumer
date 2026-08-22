@@ -1,0 +1,5 @@
+{
+    "proxy":"http://127.0.0.1",
+    "port":10808,
+    "base_path_app":"tools/app/"
+}
