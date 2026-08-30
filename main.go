@@ -1,18 +1,19 @@
 package main
 
 import (
-	"fmt"
-	"watchtower_consumer/Constants"
 	custom_color "watchtower_consumer/custom_Color"
 	"watchtower_consumer/env"
+	"watchtower_consumer/rabbitmq"
 	"watchtower_consumer/tools"
-	"watchtower_consumer/tools/handler"
+	AppHandler "watchtower_consumer/tools/handler"
+
+	"github.com/rabbitmq/amqp091-go"
 )
 
 func main() {
 
 	env.Init()
-	handler.Register_All()
+	AppHandler.Register_All()
 
 	if tools.Check_Proxy() {
 		custom_color.Succeed()("[+] Proxy Turn on\n")
@@ -20,22 +21,17 @@ func main() {
 		custom_color.Warning()("[!] Proxy Turn off\n")
 	}
 
-	ch := make(chan string)
+	msg, ch := rabbitmq.GetMessage()
+	defer ch.Close()
+	// e, _ := AppHandler.Get_Program(Constants.APP_SUBFINDER)
+	// e.Execute("sess.sku.ac.ir")
 
-	go func(ch chan string) {
+	go func(msg <-chan amqp091.Delivery) {
+		for d := range msg {
+			custom_color.Succeed()("message relives {%s}\n", string(d.Body))
+			d.Nack(false, true)
+		}
+	}(msg)
 
-		exe, _ := handler.Get_Program(Constants.APP_SUBFINDER)
-		data, _ := exe.Execute("sku.ac.ir")
-		ch <- string(data)
-	}(ch)
-
-	fmt.Println("app end..")
-
-	fmt.Println(<-ch)
-	// r := exec.Command("curl", "-x", "http://127.0.0.1:10808", "-s", "-I", "http://www.google.com")
-	// b, err := r.Output()
-	// fmt.Println(err)
-	// fmt.Println(string(b))
-	// tools.exe
-
+	select {}
 }

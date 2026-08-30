@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strconv"
 	custom_color "watchtower_consumer/custom_Color"
+	"watchtower_consumer/utils"
 )
 
 type user_config struct {
@@ -30,14 +31,16 @@ func ReadeConfig(name string) *user_config {
 	}
 	config, err := os.Open(name)
 
-	if err != nil {
-		custom_color.Error()("[-] %v\n", err)
+	e := utils.FailOnError(err, "", nil)
+	if e {
 		return nil
 	}
+
 	defer config.Close()
 	data, err := io.ReadAll(config)
-	if err != nil {
-		custom_color.Error()("[-] %v\n", err)
+
+	e = utils.FailOnError(err, "", nil)
+	if e {
 		return nil
 	}
 
@@ -45,8 +48,8 @@ func ReadeConfig(name string) *user_config {
 
 	err = json.Unmarshal(data, &userConfig)
 
-	if err != nil {
-		custom_color.Error()("[-] %v\n", err)
+	e = utils.FailOnError(err, "", nil)
+	if e {
 		return nil
 	}
 

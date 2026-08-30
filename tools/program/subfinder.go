@@ -3,6 +3,7 @@ package program
 import (
 	"errors"
 	"os"
+	"strings"
 	"watchtower_consumer/Constants"
 	custom_color "watchtower_consumer/custom_Color"
 	"watchtower_consumer/tools"
@@ -40,6 +41,7 @@ func (s *SubFinder) Execute(args ...string) ([]byte, error) {
 
 	app_args = append(app_args, "-d")
 	app_args = append(app_args, domain)
+	custom_color.Reset()("Run Command :  %s %s\n", app_name, strings.Join(app_args, " "))
 
 	return tools.RunApp(app_name, app_args...)
 

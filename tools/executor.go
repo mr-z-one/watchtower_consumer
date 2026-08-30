@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"watchtower_consumer/Constants"
 	custom_color "watchtower_consumer/custom_Color"
+	"watchtower_consumer/utils"
 )
 
 func Check_Proxy() bool {
@@ -16,8 +17,8 @@ func Check_Proxy() bool {
 
 	_, err := myClient.Head("https://www.amd.com/")
 
-	if err != nil {
-
+	e := utils.FailOnError(err, "", nil)
+	if e {
 		return false
 	}
 

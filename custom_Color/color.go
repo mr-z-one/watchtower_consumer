@@ -7,6 +7,11 @@ func Warning() func(format string, a ...interface{}) {
 	return color.New(color.FgYellow, color.Bold).PrintfFunc()
 
 }
+func Reset() func(format string, a ...interface{}) {
+
+	return color.New(color.ResetBlinking).PrintfFunc()
+
+}
 
 func Succeed() func(format string, a ...interface{}) {
 
