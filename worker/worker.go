@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"runtime"
+	data "watchtower_consumer/Data"
 	custom_color "watchtower_consumer/custom_Color"
 	"watchtower_consumer/rabbitmq"
 	AppHandler "watchtower_consumer/tools/handler"
@@ -13,7 +14,7 @@ import (
 
 var number_Of_Worker int = runtime.NumCPU() - 2
 
-func Worker(c context.Context, id int) {
+func Worker(c context.Context, data_channel chan<- *data.MessageData) {
 	msg, ch := rabbitmq.GetMessage()
 	defer ch.Close()
 
@@ -36,21 +37,28 @@ func Worker(c context.Context, id int) {
 					d.Nack(false, false)
 					continue
 				}
-				data, err := e.Execute(m.Args...)
+				res, err := e.Execute(m.Args...)
 				if utils.FailOnError(err, "error form Running Command  id : "+m.UUID, nil) {
 					d.Nack(false, true)
 					continue
 				}
-				custom_color.Succeed()("\n%s\n", string(data))
+				custom_color.Succeed()("\n%s\n", "cmd are finish successful")
+				messageData := data.NewMessageData(m.UUID, res...)
 
+				data_channel <- messageData
 				d.Ack(false)
 			}
 		}
 	}
 }
-
-func InitWorker(c context.Context) {
+func HandleData(data_channel <-chan *data.MessageData) {
+	for message := range data_channel {
+		custom_color.Succeed()("msg_uuid %s \n", message.Msg_UUID)
+		custom_color.Succeed()("\tmsg_response %s \n", string(message.Response))
+	}
+}
+func InitWorker(c context.Context, data chan<- *data.MessageData) {
 	for i := 0; i < number_Of_Worker; i++ {
-		go Worker(c, i)
+		go Worker(c, data)
 	}
 }

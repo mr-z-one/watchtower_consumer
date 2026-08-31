@@ -3,8 +3,10 @@ package main
 import (
 	"context"
 	"os/signal"
+	"runtime"
 	"syscall"
 	"time"
+	data "watchtower_consumer/Data"
 	custom_color "watchtower_consumer/custom_Color"
 	"watchtower_consumer/env"
 	"watchtower_consumer/tools"
@@ -12,7 +14,10 @@ import (
 	"watchtower_consumer/worker"
 )
 
+var BUFFER_CAPACITY int = runtime.NumCPU() * 2
+
 func main() {
+	var data = make(chan *data.MessageData, BUFFER_CAPACITY)
 
 	env.Init()
 	AppHandler.Register_All()
@@ -28,8 +33,8 @@ func main() {
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 
-	worker.InitWorker(ctx)
-
+	worker.InitWorker(ctx, data)
+	go worker.HandleData(data)
 	<-ctx.Done()
 	defer stop()
 
